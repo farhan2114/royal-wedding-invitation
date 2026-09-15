@@ -37,6 +37,9 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px;
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100% !important;
 }
 
 body {
@@ -45,7 +48,10 @@ body {
   font-family: var(--font-sans);
   color: var(--ink-primary);
   background-color: var(--royal-wine-dark);
-  overflow-x: hidden;
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100% !important;
+  position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -57,6 +63,8 @@ body {
 .wedding-app-root {
   position: relative;
   width: 100%;
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
   min-height: 100vh;
 }
 
@@ -1574,6 +1582,7 @@ button.couple-arch-button:active {
   transition: opacity 0.85s cubic-bezier(0.2, 0.9, 0.3, 1),
               transform 0.85s cubic-bezier(0.2, 0.9, 0.3, 1);
   user-select: none;
+  overflow: visible;
 }
 
 .grand-envelope-screen.is-revealing-site {
@@ -1582,81 +1591,59 @@ button.couple-arch-button:active {
   pointer-events: none;
 }
 
+
 .envelope-center-stage {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding-top: 50px;
 }
 
-/* Huge Royal Envelope (Perspective is directly on the box without preserve-3d) */
+/* ── Real Envelope Image Container ─────────────────────────────────────────── */
 .huge-envelope-box {
   position: relative;
-  width: min(92vw, 620px);
-  height: 390px;
+  width: min(86vw, 500px);
   cursor: pointer;
-  perspective: 1200px;
   transition: transform 0.35s ease;
 }
 .huge-envelope-box:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
 }
 
-/* 1. Envelope Back Lining (z-index: 1) */
-.huge-envelope-back {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(145deg, #300a16, #1e040c);
-  border-radius: 18px;
-  box-shadow: 
-    0 35px 90px rgba(0, 0, 0, 0.92),
-    0 0 0 1.5px rgba(201, 166, 106, 0.45),
-    0 0 45px rgba(201, 166, 106, 0.18);
-  z-index: 1;
-}
-
-/* 2. Top Triangular Flap that opens in 3D */
-.huge-flap-top {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 240px;
-  transform-origin: top center;
-  transform: rotateX(0deg);
-  z-index: 15;
-  transition: transform 0.65s cubic-bezier(0.35, 0, 0.25, 1);
-  backface-visibility: visible;
-  pointer-events: none;
-}
-
-.huge-flap-svg {
-  width: 100%;
-  height: 100%;
+/* The actual red envelope photo */
+.real-envelope-img {
   display: block;
-  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 28px 70px rgba(0, 0, 0, 0.88))
+          drop-shadow(0 0 28px rgba(160, 15, 25, 0.3));
+  transition: opacity 0.65s ease, transform 0.65s ease;
 }
 
-/* During flap-opening: flap rotates 180deg upward while staying at z-index 15 */
-.grand-envelope-screen.is-flap-opening .huge-flap-top {
-  transform: rotateX(180deg);
-  z-index: 15;
+/* While flap "opens" — subtle lift */
+.grand-envelope-screen.is-flap-opening .real-envelope-img {
+  opacity: 0.88;
+  transform: scale(1.012);
+}
+/* When card rises — envelope dims */
+.grand-envelope-screen.is-card-rising .real-envelope-img,
+.grand-envelope-screen.is-revealing-site .real-envelope-img {
+  opacity: 0.5;
+  transform: scale(0.97);
 }
 
-/* When card rises & site reveals: flap is opened at top, drops to z-index 2 (BEHIND letter!) */
-.grand-envelope-screen.is-card-rising .huge-flap-top,
-.grand-envelope-screen.is-revealing-site .huge-flap-top {
-  transform: rotateX(180deg);
-  z-index: 2 !important;
-}
-
-/* 3. Golden Invitation Letter Card that emerges and slides up (z-index: 6) */
+/* ── Invitation Letter Card (emerges from envelope) ─────────────────────────── */
 .huge-envelope-letter {
   position: absolute;
-  top: 15px;
-  left: 20px;
-  right: 20px;
-  height: 360px;
+  left: 8%;
+  right: 8%;
+  /* Start tucked ~60% from top of the image (inside envelope pocket area) */
+  top: 40%;
+  height: 300px;
   background: var(--paper-cream-gradient);
   border: 1.5px solid var(--royal-gold);
   border-radius: 14px;
@@ -1666,16 +1653,19 @@ button.couple-arch-button:active {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 30px 24px;
+  padding: 26px 22px;
   transform: translateY(0);
-  transition: transform 1.25s cubic-bezier(0.22, 1, 0.36, 1);
+  opacity: 0;
+  transition: transform 1.35s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.55s ease 0.15s;
   pointer-events: none;
 }
 
-/* When card rises: slides gracefully upward out of the front pocket */
+/* When card rises: slides gracefully upward — stops at viewport-safe position */
 .grand-envelope-screen.is-card-rising .huge-envelope-letter,
 .grand-envelope-screen.is-revealing-site .huge-envelope-letter {
-  transform: translateY(-270px);
+  transform: translateY(-160px);
+  opacity: 1;
 }
 
 .letter-inner-parchment {
@@ -1685,12 +1675,8 @@ button.couple-arch-button:active {
   justify-content: center;
 }
 
-.letter-royal-emblem {
-  margin-bottom: 6px;
-}
-
 .letter-royal-crown {
-  font-size: 32px;
+  font-size: 30px;
   color: var(--royal-gold-bright);
   display: block;
   margin-bottom: 4px;
@@ -1699,8 +1685,8 @@ button.couple-arch-button:active {
 
 .letter-royal-eyebrow {
   font-family: var(--font-heading);
-  font-size: 0.92rem;
-  letter-spacing: 0.28em;
+  font-size: 0.83rem;
+  letter-spacing: 0.26em;
   color: var(--royal-gold-deep);
   font-weight: 700;
   margin-bottom: 8px;
@@ -1708,7 +1694,7 @@ button.couple-arch-button:active {
 
 .letter-royal-names {
   font-family: var(--font-display);
-  font-size: 2.85rem;
+  font-size: 2.6rem;
   color: var(--royal-wine);
   margin-bottom: 8px;
   letter-spacing: 0.03em;
@@ -1718,7 +1704,7 @@ button.couple-arch-button:active {
 
 .letter-royal-date {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   color: var(--ink-muted);
   font-style: italic;
   letter-spacing: 0.02em;
@@ -1731,7 +1717,7 @@ button.couple-arch-button:active {
   width: 100px;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--royal-gold), transparent);
-  margin: 12px 0;
+  margin: 10px 0;
   position: relative;
 }
 
@@ -1744,130 +1730,54 @@ button.couple-arch-button:active {
 
 .letter-royal-prompt {
   font-family: var(--font-script);
-  font-size: 1.55rem;
+  font-size: 1.4rem;
   color: var(--royal-gold-deep);
   margin-top: 2px;
 }
 
-/* 4. Front Pocket: Left & Right Side Flaps (z-index: 10) */
-.huge-flap-left {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 50%;
-  background: linear-gradient(135deg, #3d101c, #22050e);
-  clip-path: polygon(0 0, 0 100%, 100% 50%);
-  z-index: 10;
-  border-top-left-radius: 18px;
-  border-bottom-left-radius: 18px;
-  pointer-events: none;
-  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
-}
-
-.huge-flap-right {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 50%;
-  background: linear-gradient(225deg, #3d101c, #22050e);
-  clip-path: polygon(100% 0, 100% 100%, 0 50%);
-  z-index: 10;
-  border-top-right-radius: 18px;
-  border-bottom-right-radius: 18px;
-  pointer-events: none;
-  box-shadow: -2px 0 10px rgba(0, 0, 0, 0.3);
-}
-
-/* 5. Front Pocket: Bottom Flap (z-index: 11) */
-.huge-pocket-bottom {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 270px;
-  z-index: 11;
-  pointer-events: none;
-  border-bottom-left-radius: 18px;
-  border-bottom-right-radius: 18px;
-  overflow: hidden;
-}
-
-.huge-pocket-svg {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
-/* 6. Grand Golden Royal Wax Seal (z-index: 20) */
+/* ── Invisible wax-seal tap zone (over real botanical seal in image) ──────── */
+/* The gold seal is roughly at horizontal center, ~60% from top of image */
 .huge-wax-seal-btn {
   position: absolute;
-  top: 155px;
+  top: 58%;
   left: 50%;
-  transform: translateX(-50%);
-  width: 88px;
-  height: 88px;
-  background: radial-gradient(circle at 35% 35%, #fbe28e, #d4af37 55%, #8c672b 100%);
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  background: transparent;
+  border: none;
   border-radius: 50%;
-  border: 3px solid #fff5cc;
-  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.7), inset 0 2px 5px rgba(255, 255, 255, 0.5);
   z-index: 20;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   outline: none;
+  padding: 0;
+  transition: opacity 0.35s ease;
   animation: seal-gentle-pulse 2.2s infinite ease-in-out;
-  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .grand-envelope-screen.is-flap-opening .huge-wax-seal-btn,
 .grand-envelope-screen.is-card-rising .huge-wax-seal-btn,
 .grand-envelope-screen.is-revealing-site .huge-wax-seal-btn {
   opacity: 0;
-  transform: translateX(-50%) scale(1.35) rotate(15deg);
-  filter: blur(2px);
   pointer-events: none;
 }
 
-.seal-relief-art {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.seal-emblem {
-  font-size: 10px;
-  color: #3b1404;
-}
-.seal-monogram-text {
-  font-family: var(--font-heading);
-  font-size: 17px;
-  font-weight: 800;
-  color: #3b1404;
-  letter-spacing: 0.05em;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-.seal-sub-ring {
-  font-family: var(--font-heading);
-  font-size: 7px;
-  letter-spacing: 0.15em;
-  color: #572a08;
-  font-weight: 700;
+.seal-pulse-glow {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.35) 0%, transparent 70%);
 }
 
 @keyframes seal-gentle-pulse {
-  0%, 100% {
-    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.7), 0 0 0 0 rgba(212, 175, 55, 0.6);
-  }
-  50% {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.85), 0 0 0 14px rgba(212, 175, 55, 0);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0.55); }
+  50%       { box-shadow: 0 0 0 18px rgba(212, 175, 55, 0); }
 }
 
+/* ── Tap Cue ───────────────────────────────────────────────────────────────── */
 .huge-envelope-cue {
-  margin-top: 45px;
+  margin-top: 36px;
   text-align: center;
   transition: opacity 0.3s ease;
 }
@@ -1881,8 +1791,8 @@ button.couple-arch-button:active {
 
 .cue-title {
   font-family: var(--font-heading);
-  font-size: 1.05rem;
-  letter-spacing: 0.24em;
+  font-size: 0.93rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: #e5be7a;
   margin-bottom: 8px;
@@ -1891,7 +1801,7 @@ button.couple-arch-button:active {
 }
 .cue-names {
   font-family: var(--font-display);
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   color: rgba(245, 238, 220, 0.8);
   letter-spacing: 0.05em;
   font-style: italic;
@@ -1902,43 +1812,58 @@ button.couple-arch-button:active {
   50% { opacity: 1; transform: translateY(-3px); }
 }
 
+/* ── Mobile ────────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
+  .envelope-center-stage {
+    padding-top: 20px;
+  }
   .huge-envelope-box {
-    width: min(94vw, 360px);
-    height: 310px;
+    width: min(92vw, 340px);
   }
   .huge-envelope-letter {
-    height: 285px;
-    top: 12px;
-    left: 14px;
-    right: 14px;
-    padding: 20px 14px;
+    left: 5%;
+    right: 5%;
+    height: 240px;
+    padding: 16px 12px;
+    top: 38%;
   }
   .grand-envelope-screen.is-card-rising .huge-envelope-letter,
   .grand-envelope-screen.is-revealing-site .huge-envelope-letter {
-    transform: translateY(-215px);
-  }
-  .huge-flap-top {
-    height: 175px;
-  }
-  .huge-pocket-bottom {
-    height: 190px;
+    transform: translateY(-120px);
   }
   .huge-wax-seal-btn {
-    top: 125px;
-    width: 74px;
-    height: 74px;
+    width: 68px;
+    height: 68px;
+    top: 57%;
   }
   .letter-royal-names {
-    font-size: 2.1rem;
+    font-size: 1.85rem;
   }
   .letter-royal-crown {
-    font-size: 24px;
+    font-size: 22px;
   }
   .letter-royal-prompt {
-    font-size: 1.3rem;
+    font-size: 1.15rem;
+  }
+  .letter-royal-date {
+    font-size: 0.9rem;
+  }
+  .letter-royal-eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+  }
+  .huge-envelope-cue {
+    margin-top: 20px;
+  }
+  .cue-title {
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+  }
+  .cue-names {
+    font-size: 0.98rem;
   }
 }
+
 
 /* ==========================================================================
    15. FLOATING MUSIC TOGGLE
@@ -1985,4 +1910,510 @@ button.couple-arch-button:active {
 .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+
+/* ==========================================================================
+   17. COMPREHENSIVE MOBILE RESPONSIVE MASTER STYLES (NO OVERLAPPING / NO OVERFLOW)
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  /* Viewport and Parchment Container */
+  .scrollable-parchment-viewport {
+    padding: 20px 8px 60px !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  .royal-parchment-paper {
+    padding: 36px 14px 45px !important;
+    border-radius: 18px !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /* Corner Florals - Dainty & Tucked Away */
+  .paper-corner-floral {
+    width: 58px !important;
+    opacity: 0.55 !important;
+  }
+  .paper-corner-floral.floral-top-left {
+    top: -6px !important;
+    left: -6px !important;
+  }
+  .paper-corner-floral.floral-top-right {
+    top: -6px !important;
+    right: -6px !important;
+  }
+  .paper-corner-floral.floral-bottom-left {
+    bottom: -6px !important;
+    left: -6px !important;
+  }
+  .paper-corner-floral.floral-bottom-right {
+    bottom: -6px !important;
+    right: -6px !important;
+  }
+
+  .parchment-inner-border {
+    inset: 7px !important;
+    border-radius: 12px !important;
+  }
+  .corner-flourish {
+    font-size: 15px !important;
+  }
+
+  /* Universal Section Headings */
+  .section-header-centered {
+    margin-bottom: 24px !important;
+  }
+  .paper-section-eyebrow {
+    font-size: 0.85rem !important;
+    letter-spacing: 0.16em !important;
+    margin-bottom: 6px !important;
+  }
+  .paper-section-title {
+    font-size: clamp(1.8rem, 6.8vw, 2.3rem) !important;
+    margin-bottom: 8px !important;
+  }
+  .paper-section-subtitle {
+    font-size: 1.1rem !important;
+    line-height: 1.55 !important;
+    padding: 0 4px !important;
+  }
+
+  /* Section Dividers */
+  .royal-gold-divider {
+    margin: 34px 0 !important;
+    gap: 10px !important;
+  }
+  .royal-gold-divider::before,
+  .royal-gold-divider::after {
+    max-width: 50px !important;
+  }
+  .divider-floral-badge {
+    width: 24px !important;
+  }
+
+  /* 1. Envelope (image-based) - mobile */
+  .envelope-center-stage {
+    padding-top: 15px !important;
+  }
+  .huge-envelope-box {
+    width: min(90vw, 330px) !important;
+  }
+  .huge-envelope-letter {
+    height: 230px !important;
+    top: 36% !important;
+    left: 5% !important;
+    right: 5% !important;
+    padding: 14px 12px !important;
+  }
+  .grand-envelope-screen.is-card-rising .huge-envelope-letter,
+  .grand-envelope-screen.is-revealing-site .huge-envelope-letter {
+    transform: translateY(-110px) !important;
+  }
+  .huge-wax-seal-btn {
+    width: 62px !important;
+    height: 62px !important;
+    top: 57% !important;
+  }
+  .letter-royal-crown {
+    font-size: 20px !important;
+    margin-bottom: 2px !important;
+  }
+  .letter-royal-eyebrow {
+    font-size: 0.7rem !important;
+    letter-spacing: 0.14em !important;
+    margin-bottom: 4px !important;
+  }
+  .letter-royal-names {
+    font-size: 1.75rem !important;
+    margin-bottom: 4px !important;
+    line-height: 1.1 !important;
+  }
+  .letter-royal-date {
+    font-size: 0.88rem !important;
+  }
+  .letter-gold-rule {
+    width: 60px !important;
+    margin: 6px 0 !important;
+  }
+  .letter-royal-prompt {
+    font-size: 1.1rem !important;
+  }
+  .huge-envelope-cue {
+    margin-top: 18px !important;
+    padding: 0 12px !important;
+  }
+  .cue-title {
+    font-size: 0.76rem !important;
+    letter-spacing: 0.1em !important;
+    line-height: 1.4 !important;
+  }
+  .cue-names {
+    font-size: 1rem !important;
+  }
+
+  /* 2. Hero Section */
+  .hero-paper-section {
+    padding: 5px 0 20px !important;
+  }
+  .hero-floral-frame-wrapper {
+    max-width: 260px !important;
+    margin: 0 auto 20px !important;
+  }
+  .hero-floral-arch-box {
+    width: 210px !important;
+  }
+  .hero-portrait-img-card {
+    border-radius: 105px 105px 14px 14px !important;
+    box-shadow: 
+      0 12px 28px rgba(45, 22, 32, 0.2),
+      0 0 0 3px #faf4e6,
+      0 0 0 5px var(--royal-gold) !important;
+  }
+  .hero-frame-flower {
+    width: 55px !important;
+  }
+  .hero-frame-flower.flower-top-left {
+    top: -12px !important;
+    left: -12px !important;
+  }
+  .hero-frame-flower.flower-top-right {
+    top: -12px !important;
+    right: -12px !important;
+  }
+  .hero-frame-flower.flower-bottom-left {
+    bottom: -10px !important;
+    left: -12px !important;
+  }
+  .hero-frame-flower.flower-bottom-right {
+    bottom: -10px !important;
+    right: -12px !important;
+  }
+  .hero-calligraphy-subtitle {
+    font-size: 1.45rem !important;
+    margin-bottom: 4px !important;
+  }
+  .hero-eyebrow {
+    font-size: 0.82rem !important;
+    letter-spacing: 0.12em !important;
+    margin-bottom: 10px !important;
+  }
+  .hero-stylish-names {
+    font-size: clamp(2.1rem, 8vw, 3rem) !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1.15 !important;
+    margin-bottom: 12px !important;
+    word-break: break-word !important;
+  }
+  .hero-invitation-message {
+    font-size: 1.12rem !important;
+    line-height: 1.6 !important;
+    margin-bottom: 22px !important;
+    padding: 0 4px !important;
+  }
+  .hero-scroll-pill {
+    padding: 10px 22px !important;
+    font-size: 0.8rem !important;
+    letter-spacing: 0.08em !important;
+  }
+
+  /* 3. Celestial Countdown Timer */
+  .celestial-countdown-container {
+    padding: 12px 2px !important;
+    margin: 0 auto !important;
+    max-width: 100% !important;
+  }
+  .celestial-dials-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 14px 8px !important;
+    justify-items: center !important;
+  }
+  .dial-svg-box {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  .dial-ring-svg {
+    width: 100px !important;
+    height: 100px !important;
+  }
+  .dial-number-val {
+    font-size: 1.6rem !important;
+  }
+  .dial-unit-label {
+    font-size: 0.68rem !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  /* 4. Family Section */
+  .family-cards-grid {
+    flex-direction: column !important;
+    gap: 14px !important;
+    width: 100% !important;
+  }
+  .family-royal-card {
+    width: 100% !important;
+    padding: 18px 14px !important;
+    box-sizing: border-box !important;
+  }
+  .family-card-kicker {
+    font-size: 0.8rem !important;
+    letter-spacing: 0.12em !important;
+    margin-bottom: 5px !important;
+  }
+  .family-parent-names {
+    font-size: 1.3rem !important;
+    line-height: 1.35 !important;
+  }
+  .family-center-jharokha {
+    width: 60px !important;
+    margin: 0 auto !important;
+  }
+
+  /* 5. Couple Section */
+  .couple-large-cards-container {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    width: 100% !important;
+  }
+  .couple-large-card {
+    padding: 20px 14px 24px !important;
+    border-radius: 18px !important;
+    box-sizing: border-box !important;
+  }
+  .arch-photo-box {
+    width: 180px !important;
+    height: 240px !important;
+    border-radius: 90px 90px 14px 14px !important;
+  }
+  .couple-role-tag {
+    font-size: 0.85rem !important;
+    margin-bottom: 6px !important;
+  }
+  .couple-person-name {
+    font-size: 1.95rem !important;
+    margin-bottom: 8px !important;
+  }
+  .couple-short-bio-large {
+    font-size: 1.12rem !important;
+    line-height: 1.55 !important;
+    padding: 0 4px !important;
+  }
+
+  /* Modal Popup */
+  .profile-modal-card {
+    width: 94vw !important;
+    padding: 22px 14px !important;
+    max-height: 88vh !important;
+    overflow-y: auto !important;
+    border-radius: 18px !important;
+  }
+  .modal-img-col {
+    width: 120px !important;
+    height: 160px !important;
+    margin: 0 auto !important;
+  }
+  .modal-copy-col h3 {
+    font-size: 1.7rem !important;
+  }
+  .modal-bio-text {
+    font-size: 1.08rem !important;
+  }
+
+  /* 6. Photo Dump */
+  .photo-dump-refined-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+  .photo-inner-crop {
+    border-radius: 10px !important;
+  }
+  .refined-photo-card figcaption {
+    font-size: 0.92rem !important;
+  }
+
+  /* 7. Events Coverflow Section */
+  .events-coverflow-section {
+    padding: 10px 0 20px !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+  .coverflow-stage-viewport {
+    width: 100% !important;
+    min-height: 450px !important;
+    overflow: hidden !important;
+    margin: 4px 0 14px !important;
+  }
+  .coverflow-track {
+    height: 430px !important;
+    width: 100% !important;
+  }
+  .coverflow-card {
+    width: min(84vw, 280px) !important;
+    height: 410px !important;
+    border-radius: 16px !important;
+  }
+  .card-glass-panel {
+    border-radius: 16px !important;
+  }
+  .coverflow-card.is-center {
+    transform: translateX(0) scale(1) !important;
+  }
+  .coverflow-card.is-left {
+    transform: translateX(-54%) scale(0.78) !important;
+    opacity: 0.3 !important;
+  }
+  .coverflow-card.is-right {
+    transform: translateX(54%) scale(0.78) !important;
+    opacity: 0.3 !important;
+  }
+  .card-image-header {
+    height: 160px !important;
+  }
+  .card-body-content {
+    padding: 12px 14px 16px !important;
+  }
+  .card-title-heading {
+    font-size: 1.6rem !important;
+    margin-bottom: 6px !important;
+  }
+  .card-meta-pills-row {
+    gap: 5px !important;
+    margin-bottom: 6px !important;
+  }
+  .event-meta-pill {
+    font-size: 0.74rem !important;
+    padding: 4px 8px !important;
+    gap: 4px !important;
+  }
+  .card-description-text {
+    font-size: 1.05rem !important;
+    line-height: 1.45 !important;
+  }
+  .compact-side-title {
+    font-size: 1.25rem !important;
+  }
+  .compact-date-badge {
+    font-size: 0.74rem !important;
+  }
+  .compact-tap-hint {
+    font-size: 1.05rem !important;
+  }
+  .coverflow-nav-controls {
+    gap: 12px !important;
+    margin-top: 12px !important;
+  }
+  .coverflow-arrow-btn {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  /* 8. Venue Section */
+  .venue-paper-grid {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+  .venue-visual-frame img {
+    height: 190px !important;
+  }
+  .venue-visual-frame figcaption {
+    font-size: 0.85rem !important;
+    padding: 8px !important;
+  }
+  .venue-blurb {
+    font-size: 1.12rem !important;
+    line-height: 1.55 !important;
+    margin-bottom: 12px !important;
+  }
+  .venue-address-tag {
+    font-size: 0.85rem !important;
+    margin-bottom: 12px !important;
+  }
+  .venue-map-wrapper {
+    height: 160px !important;
+  }
+
+  /* 9. Blessings Section */
+  .animated-blessing-stage {
+    flex-direction: column !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+  .blessing-arrow-btn {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  .luxury-blessing-card-animated {
+    width: 100% !important;
+  }
+  .blessing-card-body {
+    padding: 18px 12px 20px !important;
+    min-height: auto !important;
+  }
+  .blessing-message-text {
+    font-size: 1.15rem !important;
+    line-height: 1.55 !important;
+    margin-bottom: 12px !important;
+  }
+  .blessing-author-name {
+    font-size: 1.25rem !important;
+  }
+  .blessing-guestbook-form {
+    padding: 18px 12px !important;
+    border-radius: 16px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .guestbook-form-title {
+    font-size: 1.65rem !important;
+  }
+  .guestbook-input-fields {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+  .guestbook-text-input,
+  .guestbook-textarea {
+    padding: 10px 12px !important;
+    font-size: 0.92rem !important;
+  }
+  .guestbook-submit-button {
+    padding: 12px 22px !important;
+    font-size: 0.82rem !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  /* 10. Closing Section */
+  .closing-paper-section {
+    padding: 20px 0 8px !important;
+  }
+  .closing-badge-pill {
+    font-size: 0.74rem !important;
+    padding: 4px 12px !important;
+  }
+  .closing-signoff-line {
+    font-size: 1.5rem !important;
+    margin-bottom: 10px !important;
+  }
+  .closing-stylish-names {
+    font-size: clamp(1.9rem, 7vw, 2.6rem) !important;
+    margin-bottom: 8px !important;
+  }
+  .closing-location-date {
+    font-size: 1rem !important;
+    margin-bottom: 16px !important;
+  }
+  .closing-gold-lotus {
+    width: 34px !important;
+  }
+
+  /* 11. Floating Music Toggle */
+  .music-toggle {
+    top: 10px !important;
+    right: 10px !important;
+    padding: 6px 12px !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.06em !important;
+    gap: 5px !important;
+  }
 }

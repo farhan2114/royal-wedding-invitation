@@ -25,8 +25,7 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
     let t1: number, t2: number, t3: number;
 
     if (stage === 'flap-opening') {
-      // 1. After 550ms, top flap has flipped open 180deg.
-      // Transition to card-rising: flap drops to z-index 2 (behind letter), card glides up!
+      // 1. After 550ms flap has "opened" (envelope img fades/scales slightly)
       t1 = window.setTimeout(() => {
         setStage('card-rising');
       }, 550);
@@ -37,7 +36,7 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
       t2 = window.setTimeout(() => {
         setStage('revealing-site');
         onOpen();
-      }, 2100);
+      }, 2200);
     }
 
     if (stage === 'revealing-site') {
@@ -82,24 +81,15 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
           }}
           aria-label="Royal Invitation Envelope. Tap to open."
         >
-          {/* 1. Back pocket lining (z-index: 1) */}
-          <div className="huge-envelope-back" />
+          {/* Real red envelope image - replaces all CSS-drawn flaps */}
+          <img
+            src="/images/red-envelope.png"
+            className="real-envelope-img"
+            alt="Royal red envelope with gold wax seal"
+            draggable={false}
+          />
 
-          {/* 2. Top triangular flap that folds open (z-index: 15 when opening, 2 when open) */}
-          <div className="huge-flap-top">
-            <svg viewBox="0 0 600 240" className="huge-flap-svg" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="topFlapGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#431220" />
-                  <stop offset="100%" stopColor="#280712" />
-                </linearGradient>
-              </defs>
-              <polygon points="0,0 300,235 600,0" fill="url(#topFlapGrad)" />
-              <polyline points="0,0 300,235 600,0" fill="none" stroke="#c9a66a" strokeWidth="2.5" strokeLinejoin="round" />
-            </svg>
-          </div>
-
-          {/* 3. Golden Invitation Letter Card that emerges and slides up (z-index: 6) */}
+          {/* Invitation Letter Card that emerges from envelope (z-index: 6) */}
           <div className="huge-envelope-letter">
             <div className="letter-inner-parchment">
               <span className="letter-royal-crown">♔</span>
@@ -113,25 +103,7 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
             </div>
           </div>
 
-          {/* 4. Left & Right side pocket flaps (z-index: 10) */}
-          <div className="huge-flap-left" />
-          <div className="huge-flap-right" />
-
-          {/* 5. Bottom pocket flap (z-index: 11) */}
-          <div className="huge-pocket-bottom">
-            <svg viewBox="0 0 600 270" className="huge-pocket-svg" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="pocketGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-                  <stop offset="0%" stopColor="#4a1524" />
-                  <stop offset="100%" stopColor="#2d0a14" />
-                </linearGradient>
-              </defs>
-              <polygon points="0,270 600,270 300,45" fill="url(#pocketGrad)" />
-              <polyline points="0,270 300,45 600,270" fill="none" stroke="rgba(201, 166, 106, 0.45)" strokeWidth="2" strokeLinejoin="round" />
-            </svg>
-          </div>
-
-          {/* 6. Grand Golden Royal Wax Seal (z-index: 20) */}
+          {/* Wax seal tap prompt overlay (shows only while sealed) */}
           <button
             type="button"
             className="huge-wax-seal-btn"
@@ -141,18 +113,13 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
             }}
             aria-label="Tap royal wax seal to unseal and open invitation"
           >
-            <div className="seal-relief-art">
-              <span className="seal-emblem">✦</span>
-              <span className="seal-monogram-text">A &amp; M</span>
-              <span className="seal-sub-ring">UDAIPUR</span>
-            </div>
             <span className="seal-pulse-glow" />
           </button>
         </div>
 
         {/* Tap Cue below envelope */}
         <div className="huge-envelope-cue">
-          <p className="cue-title">✦ TAP THE ROYAL SEAL TO UNSEAL &amp; OPEN ✦</p>
+          <p className="cue-title">✦ TAP THE SEAL TO OPEN ✦</p>
           <p className="cue-names">Aarav &amp; Meera cordially invite you</p>
         </div>
       </div>
