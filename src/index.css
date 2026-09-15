@@ -1572,10 +1572,10 @@ button.couple-arch-button:active {
 
 
 /* ==========================================================================
-   14. OPENING COVER — Red Envelope + Paper Rising Animation
+   14. OPENING COVER — Envelope + Paper Rising Animation
    ========================================================================== */
 
-/* Full-screen overlay */
+/* ── Screen overlay ──────────────────────────────────────────────────────── */
 .oc-screen {
   position: fixed;
   inset: 0;
@@ -1584,125 +1584,231 @@ button.couple-arch-button:active {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(ellipse at 50% 40%, #2a0812 0%, #0e0205 70%);
-  transition: opacity 0.85s ease, transform 0.85s ease;
+  gap: 36px;
+  background: radial-gradient(ellipse at 50% 45%, #1e0509 0%, #080102 100%);
+  transition: opacity 0.9s ease;
   user-select: none;
-  overflow: hidden;
   cursor: pointer;
-  gap: 24px;
+  overflow: hidden;
 }
 
 .oc-screen.oc-revealing {
   opacity: 0;
-  transform: scale(1.03);
   pointer-events: none;
 }
 
-/* ── Envelope wrap ─────────────────────────────────────────────────────────── */
-.oc-envelope-wrap {
+/* ── Envelope container (envelope + paper stacked together) ─────────────── */
+.oc-env-container {
   position: relative;
+  width: min(80vw, 440px);
+  /* Height will grow to fit envelope box */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* The envelope scene: envelope img + seal btn, no paper here */
-.oc-envelope-scene {
+/* ── CSS-built envelope box ─────────────────────────────────────────────── */
+.oc-env-box {
   position: relative;
-  width: min(82vw, 460px);
-}
-
-/* ── Red envelope image (no mix-blend-mode) ─────────────────────────────── */
-.oc-envelope-img {
-  display: block;
   width: 100%;
-  height: auto;
-  border-radius: 6px;
-  pointer-events: none;
-  user-select: none;
-  filter: drop-shadow(0 22px 55px rgba(0,0,0,0.85))
-          drop-shadow(0 0 20px rgba(110,5,12,0.4));
-  transition: transform 0.55s ease, opacity 0.55s ease;
+  height: 0;
+  padding-bottom: 65%; /* 400:260 ratio */
+  perspective: 1000px;
 }
 
-.oc-screen.oc-seal-breaking .oc-envelope-img {
-  transform: scale(1.02);
+/* 1. Envelope back (dark crimson rectangle) */
+.oc-env-back {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, #8b1020 0%, #5c0810 60%, #3d0508 100%);
+  border-radius: 8px;
+  box-shadow:
+    0 30px 80px rgba(0,0,0,0.9),
+    0 0 0 1px rgba(200,80,80,0.2),
+    inset 0 0 60px rgba(0,0,0,0.3);
+  z-index: 1;
 }
-.oc-screen.oc-paper-full .oc-envelope-img,
-.oc-screen.oc-revealing .oc-envelope-img {
-  opacity: 0.45;
-  transform: scale(0.97) translateY(8px);
+
+/* 2. Top flap (triangular, hinged at top, flips open) */
+.oc-env-flap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 55%;
+  transform-origin: top center;
+  transform: rotateX(0deg);
+  z-index: 8;
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  backface-visibility: visible;
+}
+
+.oc-flap-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* When opening: flap rotates 180deg upward (flips back) */
+.oc-screen.oc-opening .oc-env-flap,
+.oc-screen.oc-paper-out .oc-env-flap,
+.oc-screen.oc-paper-hold .oc-env-flap,
+.oc-screen.oc-revealing .oc-env-flap {
+  transform: rotateX(180deg);
+}
+
+/* 3. Side flaps */
+.oc-env-flap-left {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 50%;
+  background: linear-gradient(135deg, #7a0e1c 0%, #4a0810 100%);
+  clip-path: polygon(0 0, 0 100%, 100% 50%);
+  z-index: 4;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.oc-env-flap-right {
+  position: absolute;
+  top: 0; right: 0; bottom: 0;
+  width: 50%;
+  background: linear-gradient(225deg, #7a0e1c 0%, #4a0810 100%);
+  clip-path: polygon(100% 0, 100% 100%, 0 50%);
+  z-index: 4;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+/* 4. Bottom flap */
+.oc-env-flap-bottom {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 55%;
+  z-index: 5;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  overflow: hidden;
+}
+
+/* 5. Wax seal image — positioned at the flap junction center */
+.oc-seal-img-wrap {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 12;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.oc-seal-img {
+  width: 130px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.6));
+  /* image is the full original, we need to crop to just the seal part
+     The seal is in the upper-left area of the 600x400 image */
+  object-fit: cover;
+  object-position: 18% 35%;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+}
+
+/* Seal disappears when flap opens */
+.oc-screen.oc-opening .oc-seal-img-wrap,
+.oc-screen.oc-paper-out .oc-seal-img-wrap,
+.oc-screen.oc-paper-hold .oc-seal-img-wrap,
+.oc-screen.oc-revealing .oc-seal-img-wrap {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.6) rotate(10deg);
+}
+
+/* Envelope box fades as paper rises */
+.oc-screen.oc-paper-out .oc-env-box,
+.oc-screen.oc-paper-hold .oc-env-box,
+.oc-screen.oc-revealing .oc-env-box {
+  opacity: 0;
+  transform: translateY(30px) scale(0.95);
+  transition: opacity 0.7s ease 0.3s, transform 0.7s ease 0.3s;
 }
 
 /* ── Paper card ─────────────────────────────────────────────────────────── */
-/* The paper is a SIBLING of .oc-envelope-scene, absolutely positioned relative 
-   to .oc-envelope-wrap. It starts below the envelope and rises above it.
-   Since it's a different DOM branch from the img with filter, z-index works cleanly. */
+/* Absolutely positioned relative to oc-env-container.
+   Starts BELOW the envelope, rises up to CENTER of screen, then above. 
+   No overlap with envelope: envelope fades OUT as paper rises IN. */
 .oc-paper {
   position: absolute;
-  left: 8%;
-  right: 8%;
-  /* Start position: bottom edge of envelope, paper is hidden below */
-  bottom: -20px;
-  height: 300px;
-  background: linear-gradient(160deg, #fdf6e3 0%, #f5e9c8 55%, #faf2db 100%);
-  border: 1.5px solid #c9a65a;
-  border-radius: 12px;
+  left: 4%;
+  right: 4%;
+  /* Vertically: start at top of envelope box, which is top:0 of container */
+  /* We position from bottom so it starts below the envelope */
+  bottom: -10px;
+  height: 290px;
+  background: linear-gradient(165deg, #fdf8ee 0%, #f6ead5 50%, #faf2de 100%);
+  border: 1.5px solid #c8a44e;
+  border-radius: 10px;
   box-shadow:
-    0 -6px 20px rgba(0,0,0,0.4),
-    inset 0 0 30px rgba(212,175,55,0.1);
+    0 -4px 16px rgba(0,0,0,0.3),
+    0 8px 32px rgba(0,0,0,0.4),
+    inset 0 0 30px rgba(212,175,55,0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 22px 20px;
-  /* z-index higher than envelope img so paper appears IN FRONT when rising */
-  z-index: 15;
-  /* Initially hidden: clip to show only envelope, paper starts off-screen bottom */
-  transform: translateY(100%);
+  padding: 24px 22px;
+  z-index: 2;
+  /* Start hidden BELOW the envelope (translateY positive = down) */
+  transform: translateY(0px);
   opacity: 0;
-  transition:
-    transform 1.5s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.4s ease 0.1s;
+  /* Transition ONLY starts in paper-out stage */
   pointer-events: none;
 }
 
-.oc-screen.oc-seal-breaking .oc-paper {
-  transform: translateY(80%);
-  opacity: 0;
-}
-
-/* Paper rises to final position: clearly above the envelope */
-.oc-screen.oc-paper-rising .oc-paper,
-.oc-screen.oc-paper-full .oc-paper,
-.oc-screen.oc-revealing .oc-paper {
-  transform: translateY(-85%);
+/* Envelope just opened, paper starts to come out */
+.oc-screen.oc-paper-out .oc-paper {
+  /* Rise to fully above envelope box (envelope is ~65% height of container, 
+     paper rises ~360px above its start) */
+  transform: translateY(-340px);
   opacity: 1;
+  transition: transform 1.6s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.5s ease 0.1s;
 }
 
-/* Wrapper must be relative and tall enough to contain both envelope + paper travel */
-.oc-envelope-wrap {
-  position: relative;
-  overflow: visible;
+/* Paper held at final position */
+.oc-screen.oc-paper-hold .oc-paper {
+  transform: translateY(-340px);
+  opacity: 1;
+  transition: none;
 }
 
-/* ── Paper text content ─────────────────────────────────────────────────── */
+/* Paper fades on site reveal */
+.oc-screen.oc-revealing .oc-paper {
+  transform: translateY(-340px);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+/* ── Paper text ─────────────────────────────────────────────────────────── */
 .oc-paper-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
+  width: 100%;
 }
 
 .oc-paper-crown {
   font-size: 28px;
   color: #b8860b;
   line-height: 1;
-  margin-bottom: 2px;
-  text-shadow: 0 1px 3px rgba(180,130,0,0.4);
 }
 
 .oc-paper-eyebrow {
   font-family: var(--font-heading);
-  font-size: 0.76rem;
-  letter-spacing: 0.24em;
+  font-size: 0.74rem;
+  letter-spacing: 0.25em;
   color: #8b6914;
   font-weight: 700;
   text-transform: uppercase;
@@ -1711,44 +1817,43 @@ button.couple-arch-button:active {
 
 .oc-paper-names {
   font-family: var(--font-display);
-  font-size: 2.4rem;
+  font-size: 2.5rem;
   color: #5a0a1a;
   letter-spacing: 0.03em;
   font-weight: 600;
   line-height: 1.1;
-  margin: 4px 0;
+  margin: 4px 0 2px;
 }
 
-.oc-paper-divider {
-  width: 88px;
+.oc-paper-rule {
+  width: 80px;
   height: 1px;
   background: linear-gradient(90deg, transparent, #c9a65a, transparent);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 6px 0;
+  margin: 4px 0;
 }
 
 .oc-paper-diamond {
   font-size: 7px;
   color: #c9a65a;
-  background: #fdf6e3;
-  padding: 0 4px;
+  background: #fdf8ee;
+  padding: 0 3px;
 }
 
 .oc-paper-date {
   font-family: var(--font-display);
-  font-size: 0.98rem;
+  font-size: 1rem;
   color: #7a5c28;
   font-style: italic;
-  letter-spacing: 0.04em;
   margin: 0;
 }
 
 .oc-paper-place {
   font-family: var(--font-heading);
-  font-size: 0.76rem;
-  letter-spacing: 0.18em;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
   color: #9a7030;
   text-transform: uppercase;
   margin: 0;
@@ -1756,74 +1861,20 @@ button.couple-arch-button:active {
 
 .oc-paper-script {
   font-family: var(--font-script);
-  font-size: 1.25rem;
+  font-size: 1.28rem;
   color: #8b6914;
   margin-top: 4px;
-}
-
-/* ── Wax seal tap zone ── PRECISELY over the gold seal ─────────────────── */
-/* Measured from image: seal center at 49.3% horizontal, 40.1% vertical */
-.oc-seal-btn {
-  position: absolute;
-  top: 40%;
-  left: 49.3%;
-  transform: translate(-50%, -50%);
-  width: 90px;
-  height: 90px;
-  border: none;
-  background: transparent;
-  border-radius: 50%;
-  z-index: 20;
-  cursor: pointer;
-  outline: none;
-  padding: 0;
-}
-
-.oc-seal-ring {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(212,175,55,0.18) 30%, transparent 70%);
-  animation: oc-seal-pulse 2.3s infinite ease-in-out;
-}
-
-@keyframes oc-seal-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.65); }
-  50%       { box-shadow: 0 0 0 18px rgba(212,175,55,0); }
-}
-
-.oc-screen.oc-seal-breaking .oc-seal-btn,
-.oc-screen.oc-paper-rising .oc-seal-btn,
-.oc-screen.oc-paper-full .oc-seal-btn,
-.oc-screen.oc-revealing .oc-seal-btn {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
-}
-
-/* Envelope tap shake */
-.oc-screen.oc-seal-breaking .oc-envelope-scene {
-  animation: oc-tap-shake 0.4s ease;
-}
-
-@keyframes oc-tap-shake {
-  0%   { transform: scale(1); }
-  20%  { transform: scale(1.025) rotate(-0.7deg); }
-  50%  { transform: scale(1.01) rotate(0.4deg); }
-  80%  { transform: scale(1.015) rotate(-0.3deg); }
-  100% { transform: scale(1) rotate(0); }
 }
 
 /* ── Tap cue ─────────────────────────────────────────────────────────────── */
 .oc-cue {
   text-align: center;
-  transition: opacity 0.35s ease;
+  transition: opacity 0.4s ease;
 }
 
-.oc-screen.oc-seal-breaking .oc-cue,
-.oc-screen.oc-paper-rising .oc-cue,
-.oc-screen.oc-paper-full .oc-cue,
+.oc-screen.oc-opening .oc-cue,
+.oc-screen.oc-paper-out .oc-cue,
+.oc-screen.oc-paper-hold .oc-cue,
 .oc-screen.oc-revealing .oc-cue {
   opacity: 0;
   pointer-events: none;
@@ -1854,28 +1905,26 @@ button.couple-arch-button:active {
   50%       { opacity: 1;   transform: translateY(-4px); }
 }
 
-/* ── Mobile ─────────────────────────────────────────────────────────────── */
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .oc-screen { gap: 18px; }
-  .oc-envelope-scene { width: min(90vw, 320px); }
+  .oc-screen { gap: 22px; }
+  .oc-env-container { width: min(88vw, 320px); }
+  .oc-seal-img { width: 80px; height: 80px; }
   .oc-paper {
-    height: 220px;
-    padding: 16px 14px;
-    left: 5%;
-    right: 5%;
-    bottom: -15px;
+    height: 230px;
+    padding: 18px 16px;
+    left: 3%;
+    right: 3%;
   }
-  .oc-screen.oc-paper-rising .oc-paper,
-  .oc-screen.oc-paper-full .oc-paper,
+  .oc-screen.oc-paper-out .oc-paper,
+  .oc-screen.oc-paper-hold .oc-paper,
   .oc-screen.oc-revealing .oc-paper {
-    transform: translateY(-75%);
+    transform: translateY(-260px);
   }
-  .oc-seal-btn { width: 66px; height: 66px; }
-  .oc-paper-names { font-size: 1.8rem; }
+  .oc-paper-names { font-size: 1.9rem; }
   .oc-paper-crown { font-size: 22px; }
-  .oc-paper-script { font-size: 1.05rem; }
-  .oc-paper-date { font-size: 0.86rem; }
-  .oc-cue-title { font-size: 0.73rem; letter-spacing: 0.15em; }
+  .oc-paper-script { font-size: 1.08rem; }
+  .oc-cue-title { font-size: 0.75rem; letter-spacing: 0.16em; }
   .oc-cue-sub { font-size: 0.9rem; }
 }
 
