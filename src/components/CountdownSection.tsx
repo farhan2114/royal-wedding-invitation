@@ -6,9 +6,9 @@ export const CountdownSection: React.FC = () => {
 
   const units = [
     { label: "DAYS", value: timeLeft.days, max: 365 },
-    { label: "HOURS", value: timeLeft.hours, max: 24 },
-    { label: "MINUTES", value: timeLeft.minutes, max: 60 },
-    { label: "SECONDS", value: timeLeft.seconds, max: 60 },
+    { label: "HRS", value: timeLeft.hours, max: 24 },
+    { label: "MIN", value: timeLeft.minutes, max: 60 },
+    { label: "SEC", value: timeLeft.seconds, max: 60 },
   ];
 
   return (
