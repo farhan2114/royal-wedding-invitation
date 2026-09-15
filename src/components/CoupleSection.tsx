@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 interface CoupleSectionProps {
@@ -77,8 +78,9 @@ export const CoupleSection: React.FC<CoupleSectionProps> = ({ expandedProfile, s
         </article>
       </div>
 
-      {/* Expanded Modal */}
-      {activeModal && (
+      {/* Modal rendered via Portal at document.body — fixes position:fixed inside
+          transformed parent containers (parchment viewport) making modal invisible */}
+      {activeModal && createPortal(
         <div
           className="profile-modal-backdrop"
           role="dialog"
@@ -105,7 +107,8 @@ export const CoupleSection: React.FC<CoupleSectionProps> = ({ expandedProfile, s
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </section>
   );
