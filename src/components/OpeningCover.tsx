@@ -23,8 +23,8 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
   useEffect(() => {
     let t1: number, t2: number, t3: number, t4: number;
     if (stage === 'opening') {
-      // Flap folds for 750ms, then paper starts rising
-      t1 = window.setTimeout(() => setStage('paper-rising'), 750);
+      // Flap rotates open for 800ms, then paper rises
+      t1 = window.setTimeout(() => setStage('paper-rising'), 800);
     }
     if (stage === 'paper-rising') {
       t2 = window.setTimeout(() => setStage('paper-hold'), 1700);
@@ -49,7 +49,7 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
       onClick={handleTap}
       aria-label="Tap to open wedding invitation"
     >
-      {/* PAPER — rises from inside envelope (z-index below envelope initially) */}
+      {/* PAPER — fixed position, starts behind envelope, rises above */}
       <div className="oc-paper">
         <div className="oc-paper-inner">
           <span className="oc-paper-crown">&#9812;</span>
@@ -64,28 +64,25 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
         </div>
       </div>
 
-      {/* ENVELOPE — split into BODY (stays) and FLAP (folds back) */}
+      {/* ENVELOPE — fixed, lower screen. Split into body + flap using divs (not imgs!)
+          Divs support rotateX 3D transforms reliably; img tags + clip-path do not. */}
       <div className="oc-env-wrap">
+        <div className="oc-env-container">
 
-        {/* Envelope BODY — same image, clipped to lower 52% (below the flap seam) */}
-        {/* This stays in place as the "open pocket" */}
-        <img
-          src="/images/red-envelope.png"
-          className="oc-env-body"
-          alt=""
-          draggable={false}
-          aria-hidden="true"
-        />
+          {/* BODY — shows full image MINUS the top flap triangle */}
+          <div className="oc-env-body" />
 
-        {/* Envelope FLAP — same image, clipped to upper triangle (the actual flap) */}
-        {/* This folds backward on tap, revealing the open pocket */}
-        <img
-          src="/images/red-envelope.png"
-          className="oc-env-flap"
-          alt="Royal wedding envelope"
-          draggable={false}
-        />
+          {/* FLAP HINGE — this div rotates backward (rotateX) on tap.
+              Its children share the same background image, clipped to the triangle.
+              The hinge's origin is at its bottom edge = the envelope seam line. */}
+          <div className="oc-env-flap-hinge">
+            {/* Front face: shows top triangle from the envelope image */}
+            <div className="oc-env-flap-front" />
+            {/* Back face: darker inner maroon, visible when flap has rotated */}
+            <div className="oc-env-flap-back" />
+          </div>
 
+        </div>
       </div>
 
       {/* Tap cue */}
