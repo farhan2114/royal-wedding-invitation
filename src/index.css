@@ -1572,20 +1572,15 @@ button.couple-arch-button:active {
 
 
 /* ==========================================================================
-   14. OPENING COVER — Envelope Photo + Paper Rising, Sequential, No Overlap
+   14. OPENING COVER — Envelope Photo opens, Paper rises through it
    ========================================================================== */
 
-/* ── Full-screen backdrop ────────────────────────────────────────────────── */
+/* ── Full-screen overlay ─────────────────────────────────────────────────── */
 .oc-screen {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 28px;
-  background: radial-gradient(ellipse at 50% 45%, #1e0509 0%, #080102 100%);
+  background: radial-gradient(ellipse at 50% 55%, #1e0509 0%, #080102 100%);
   transition: opacity 0.9s ease;
   user-select: none;
   cursor: pointer;
@@ -1596,108 +1591,141 @@ button.couple-arch-button:active {
   pointer-events: none;
 }
 
-/* ── Main container: envelope img + paper stacked ────────────────────────── */
-.oc-wrap {
-  position: relative;
-  width: min(84vw, 500px);
-  /* Height = envelope image aspect ratio (700x466 ≈ 1.5:1), so 66.6% padding trick */
-  /* But we let content define height and use absolute positioning for paper */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+/* ── Envelope wrap — fixed, lower portion of screen ─────────────────────── */
+/* Positioned at 62% from top so upper 62% of screen is available for paper  */
+.oc-env-wrap {
+  position: fixed;
+  top: 62%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(84vw, 480px);
+  z-index: 10;
+  transform-style: preserve-3d;
+  transition:
+    transform 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.7s ease 0.3s;
 }
 
-/* ── The real envelope photo ─────────────────────────────────────────────── */
+/* Envelope tilts back on tap — suggests flap opening */
+.oc-screen.oc-opening .oc-env-wrap {
+  transform: translate(-50%, -50%) perspective(900px) rotateX(-18deg) translateY(-10px);
+}
+
+/* Envelope fades away as paper rises (delayed so paper first pokes out) */
+.oc-screen.oc-paper-rising .oc-env-wrap {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.95) translateY(15px);
+  transition:
+    opacity 0.65s ease 0.5s,
+    transform 0.65s ease 0.5s;
+}
+.oc-screen.oc-paper-hold .oc-env-wrap,
+.oc-screen.oc-revealing .oc-env-wrap {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Envelope image ──────────────────────────────────────────────────────── */
 .oc-env-img {
   display: block;
   width: 100%;
   height: auto;
-  position: relative;
-  z-index: 5;          /* On top of paper during sealed/opening state */
+  border-radius: 10px;
   pointer-events: none;
   user-select: none;
-  border-radius: 12px;
-  filter: drop-shadow(0 24px 60px rgba(0,0,0,0.88));
-  /* Transitions for the opening phase */
-  transition:
-    opacity 0.7s ease,
-    transform 0.7s ease;
+  filter: drop-shadow(0 20px 55px rgba(0,0,0,0.85));
 }
 
-/* When tapped: envelope fades out and shrinks slightly */
-.oc-screen.oc-opening .oc-env-img {
-  opacity: 0;
-  transform: scale(0.92) translateY(20px);
-}
-/* Keep envelope gone for all subsequent stages */
-.oc-screen.oc-paper-rising .oc-env-img,
-.oc-screen.oc-paper-hold .oc-env-img,
-.oc-screen.oc-revealing .oc-env-img {
-  opacity: 0;
-  transform: scale(0.9) translateY(20px);
-  transition: none; /* instant after first fade */
-}
-
-/* ── Paper card ──────────────────────────────────────────────────────────── */
-/* The paper is ABSOLUTELY positioned inside .oc-wrap.
-   It starts at bottom of the wrap (translateY(0)) hidden behind envelope.
-   When envelope is gone (paper-rising stage), paper slides UP to center.
-   We use percentage-based translateY so it works at ALL screen sizes. */
-.oc-paper {
+/* ── CSS flap overlay — dark red triangle at top of envelope ─────────────── */
+/* Covers the top flap area. When opened, rotates back (rotateX 160deg)      */
+.oc-env-flap {
   position: absolute;
-  left: 6%;
-  right: 6%;
-  /* Paper sits at the bottom of the container initially */
-  bottom: 0;
-  height: 300px;
-  z-index: 3;          /* Behind envelope image (z-5) */
+  top: 0; left: 0; right: 0;
+  height: 52%;
+  z-index: 12;
+  transform-origin: top center;
+  transform: rotateX(0deg);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  /* Triangle shape matching the envelope's dark flap */
+  clip-path: polygon(0 0, 50% 90%, 100% 0);
+  background: linear-gradient(160deg, #7a0d1a 0%, #5c0810 60%, #3d0508 100%);
+  opacity: 0.92;
+}
 
-  background: linear-gradient(165deg, #fdf8ee 0%, #f6ead5 50%, #faf2de 100%);
+/* Flap rotates back on opening */
+.oc-screen.oc-opening .oc-env-flap {
+  transform: perspective(900px) rotateX(160deg);
+}
+.oc-screen.oc-paper-rising .oc-env-flap,
+.oc-screen.oc-paper-hold .oc-env-flap,
+.oc-screen.oc-revealing .oc-env-flap {
+  transform: perspective(900px) rotateX(160deg);
+}
+
+/* ── Paper card — fixed, starts at same Y as envelope center ─────────────── */
+/* z-index 6 = BEHIND the envelope (z-10) initially.
+   As paper rises, its top portion emerges ABOVE the envelope → visible.
+   Bottom portion stays behind envelope until envelope fades.               */
+.oc-paper {
+  position: fixed;
+  top: 62%;
+  left: 50%;
+  width: min(78vw, 430px);
+  height: min(36vh, 270px);
+  z-index: 6;             /* Behind envelope z-10 */
+  background: linear-gradient(165deg, #fdf8ee 0%, #f6ead5 55%, #faf2de 100%);
   border: 1.5px solid #c8a44e;
   border-radius: 12px;
   box-shadow:
-    0 -6px 24px rgba(0,0,0,0.35),
-    0 12px 40px rgba(0,0,0,0.45),
+    0 -4px 20px rgba(0,0,0,0.35),
+    0 10px 35px rgba(0,0,0,0.45),
     inset 0 0 30px rgba(212,175,55,0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 22px 22px;
-  pointer-events: none;
-
-  /* Hidden initially */
+  padding: 20px 22px;
+  /* Start: centered at envelope position, fully hidden behind */
+  transform: translate(-50%, -50%);
   opacity: 0;
-  transform: translateY(0);
-  /* No transition on sealed/opening — only starts moving at paper-rising */
+  /* No transition in sealed state */
+  transition: none;
+  pointer-events: none;
 }
 
-/* Envelope gone → paper rises into view from the center of screen */
-/* translateY is negative = moves UP. We use a large enough value so paper  
-   ends up vertically centered on screen (50vh above its start point)       */
+/* Paper starts peeking from envelope top */
+.oc-screen.oc-opening .oc-paper {
+  transform: translate(-50%, -80%);
+  opacity: 0;
+  transition: transform 0.65s ease, opacity 0.3s ease;
+}
+
+/* Paper rises fully above envelope — 22vh above its center point.
+   This keeps paper comfortably within viewport on all screen sizes.         */
 .oc-screen.oc-paper-rising .oc-paper {
+  transform: translate(-50%, calc(-50% - 24vh));
   opacity: 1;
-  transform: translateY(-115%);
   transition:
     transform 1.6s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.45s ease;
+    opacity 0.5s ease 0.05s;
 }
 
-/* Hold final position */
+/* Hold position */
 .oc-screen.oc-paper-hold .oc-paper {
+  transform: translate(-50%, calc(-50% - 24vh));
   opacity: 1;
-  transform: translateY(-115%);
   transition: none;
 }
 
-/* Fade out on site reveal */
+/* Fade out on reveal */
 .oc-screen.oc-revealing .oc-paper {
+  transform: translate(-50%, calc(-50% - 24vh));
   opacity: 0;
-  transform: translateY(-115%);
-  transition: opacity 0.6s ease;
+  transition: opacity 0.65s ease;
 }
 
-/* ── Paper content ─────────────────────────────────────────────────────── */
+/* ── Paper text content ──────────────────────────────────────────────────── */
 .oc-paper-inner {
   display: flex;
   flex-direction: column;
@@ -1707,14 +1735,14 @@ button.couple-arch-button:active {
 }
 
 .oc-paper-crown {
-  font-size: 28px;
+  font-size: 26px;
   color: #b8860b;
   line-height: 1;
 }
 
 .oc-paper-eyebrow {
   font-family: var(--font-heading);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   letter-spacing: 0.25em;
   color: #8b6914;
   font-weight: 700;
@@ -1724,12 +1752,12 @@ button.couple-arch-button:active {
 
 .oc-paper-names {
   font-family: var(--font-display);
-  font-size: 2.6rem;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
   color: #5a0a1a;
   letter-spacing: 0.03em;
   font-weight: 600;
   line-height: 1.1;
-  margin: 4px 0 2px;
+  margin: 3px 0 2px;
 }
 
 .oc-paper-rule {
@@ -1751,7 +1779,7 @@ button.couple-arch-button:active {
 
 .oc-paper-date {
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: clamp(0.85rem, 2.5vw, 1rem);
   color: #7a5c28;
   font-style: italic;
   margin: 0;
@@ -1759,7 +1787,7 @@ button.couple-arch-button:active {
 
 .oc-paper-place {
   font-family: var(--font-heading);
-  font-size: 0.76rem;
+  font-size: clamp(0.68rem, 2vw, 0.76rem);
   letter-spacing: 0.2em;
   color: #9a7030;
   text-transform: uppercase;
@@ -1768,16 +1796,21 @@ button.couple-arch-button:active {
 
 .oc-paper-script {
   font-family: var(--font-script);
-  font-size: 1.28rem;
+  font-size: clamp(1rem, 3vw, 1.25rem);
   color: #8b6914;
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
-/* ── Tap cue ─────────────────────────────────────────────────────────────── */
+/* ── Tap cue — fixed at bottom of screen ────────────────────────────────── */
 .oc-cue {
+  position: fixed;
+  bottom: 6vh;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
   transition: opacity 0.4s ease;
-  flex-shrink: 0;
+  white-space: nowrap;
+  z-index: 20;
 }
 
 .oc-screen.oc-opening .oc-cue,
@@ -1790,7 +1823,7 @@ button.couple-arch-button:active {
 
 .oc-cue-title {
   font-family: var(--font-heading);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: #e5be7a;
@@ -1801,7 +1834,7 @@ button.couple-arch-button:active {
 
 .oc-cue-sub {
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.08rem;
   color: rgba(245,235,210,0.75);
   font-style: italic;
   letter-spacing: 0.05em;
@@ -1813,25 +1846,16 @@ button.couple-arch-button:active {
   50%       { opacity: 1;   transform: translateY(-4px); }
 }
 
-/* ── Mobile ──────────────────────────────────────────────────────────────── */
+/* ── Mobile adjustments ──────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .oc-screen { gap: 20px; }
-  .oc-wrap { width: min(90vw, 340px); }
-  .oc-paper {
-    height: 240px;
-    padding: 16px 16px;
-    left: 4%;
-    right: 4%;
-  }
+  .oc-env-wrap { width: min(90vw, 340px); top: 65%; }
+  .oc-paper { top: 65%; width: min(84vw, 320px); }
   .oc-screen.oc-paper-rising .oc-paper,
   .oc-screen.oc-paper-hold .oc-paper,
   .oc-screen.oc-revealing .oc-paper {
-    transform: translateY(-110%);
+    transform: translate(-50%, calc(-50% - 20vh));
   }
-  .oc-paper-names { font-size: 2rem; }
-  .oc-paper-crown { font-size: 22px; }
-  .oc-paper-script { font-size: 1.08rem; }
-  .oc-cue-title { font-size: 0.76rem; letter-spacing: 0.16em; }
+  .oc-cue-title { font-size: 0.74rem; letter-spacing: 0.16em; }
   .oc-cue-sub { font-size: 0.92rem; }
 }
 
