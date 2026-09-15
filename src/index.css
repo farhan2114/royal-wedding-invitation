@@ -1572,10 +1572,15 @@ button.couple-arch-button:active {
 
 
 /* ==========================================================================
-   14. OPENING COVER — Envelope Photo opens, Paper rises through it
+   14. OPENING COVER — Split envelope (flap + body), paper rises from pocket
    ========================================================================== */
 
-/* ── Full-screen overlay ─────────────────────────────────────────────────── */
+/* The envelope image is 700x466px. The triangular flap seam meets at roughly
+   50% horizontally and 52% vertically. We use clip-path to split the image
+   into two halves: the flap (top triangle) and the body (everything below).
+   The flap rotates backward on tap. The body stays as the open "pocket".   */
+
+/* ── Full screen ─────────────────────────────────────────────────────────── */
 .oc-screen {
   position: fixed;
   inset: 0;
@@ -1591,8 +1596,7 @@ button.couple-arch-button:active {
   pointer-events: none;
 }
 
-/* ── Envelope wrap — fixed, lower portion of screen ─────────────────────── */
-/* Positioned at 62% from top so upper 62% of screen is available for paper  */
+/* ── Envelope wrapper — fixed at lower portion of screen ─────────────────── */
 .oc-env-wrap {
   position: fixed;
   top: 62%;
@@ -1600,85 +1604,102 @@ button.couple-arch-button:active {
   transform: translate(-50%, -50%);
   width: min(84vw, 480px);
   z-index: 10;
-  transform-style: preserve-3d;
-  transition:
-    transform 0.65s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.7s ease 0.3s;
+  /* Perspective for 3D flap flip */
+  perspective: 1000px;
+  perspective-origin: 50% 0%;
 }
 
-/* Envelope tilts back on tap — suggests flap opening */
-.oc-screen.oc-opening .oc-env-wrap {
-  transform: translate(-50%, -50%) perspective(900px) rotateX(-18deg) translateY(-10px);
-}
-
-/* Envelope fades away as paper rises (delayed so paper first pokes out) */
-.oc-screen.oc-paper-rising .oc-env-wrap {
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0.95) translateY(15px);
-  transition:
-    opacity 0.65s ease 0.5s,
-    transform 0.65s ease 0.5s;
-}
-.oc-screen.oc-paper-hold .oc-env-wrap,
-.oc-screen.oc-revealing .oc-env-wrap {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* ── Envelope image ──────────────────────────────────────────────────────── */
-.oc-env-img {
+/* ── Body image — lower half of envelope (the pocket that stays open) ─────── */
+/* clip-path: show everything BELOW the flap seam line.
+   The seam is a V-shape: from 0%/52% → 50%/52% → 100%/52% → 100%/100% → 0/100%
+   Actually the seam is diagonal lines. Looking at the image:
+   The flap seam goes from ~(0%, 52%) diagonally to center ~(50%, 52%).
+   For simplicity and visual match, we split at: polygon covers bottom 52%.  */
+.oc-env-body {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 10px;
+  position: relative;
+  z-index: 1;
   pointer-events: none;
-  user-select: none;
-  filter: drop-shadow(0 20px 55px rgba(0,0,0,0.85));
+  border-radius: 8px;
+  filter: drop-shadow(0 24px 60px rgba(0,0,0,0.88));
+  /* Show the image but clip away the flap triangle area at top */
+  /* The triangle flap occupies top 52% in a V shape, but we keep full image
+     for the body so both images overlap — flap sits on top */
 }
 
-/* ── CSS flap overlay — dark red triangle at top of envelope ─────────────── */
-/* Covers the top flap area. When opened, rotates back (rotateX 160deg)      */
+/* ── Flap image — top triangular portion of envelope (folds back on tap) ─── */
 .oc-env-flap {
+  display: block;
+  width: 100%;
+  height: auto;
   position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 52%;
-  z-index: 12;
-  transform-origin: top center;
-  transform: rotateX(0deg);
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  top: 0; left: 0;
+  z-index: 5;
   pointer-events: none;
-  /* Triangle shape matching the envelope's dark flap */
-  clip-path: polygon(0 0, 50% 90%, 100% 0);
-  background: linear-gradient(160deg, #7a0d1a 0%, #5c0810 60%, #3d0508 100%);
-  opacity: 0.92;
+  /* Clip to ONLY the top triangular flap portion of the image
+     The flap is a downward-pointing triangle: corners at top-left, top-right, and center.
+     In the envelope image the flap seam is at roughly 52% height at the center.
+     Adjust the polygon to match the actual seam. */
+  clip-path: polygon(0% 0%, 100% 0%, 50% 52%);
+  transform-origin: 50% 0%;    /* Hinge at the top edge of the image */
+  transform: rotateX(0deg);
+  transition: transform 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Needed for 3D fold */
+  backface-visibility: hidden;
+  filter: drop-shadow(0 -8px 20px rgba(0,0,0,0.5));
 }
 
-/* Flap rotates back on opening */
-.oc-screen.oc-opening .oc-env-flap {
-  transform: perspective(900px) rotateX(160deg);
-}
+/* Flap folds back when tapped — rotates backward revealing inside */
+.oc-screen.oc-opening .oc-env-flap,
 .oc-screen.oc-paper-rising .oc-env-flap,
 .oc-screen.oc-paper-hold .oc-env-flap,
 .oc-screen.oc-revealing .oc-env-flap {
-  transform: perspective(900px) rotateX(160deg);
+  transform: rotateX(-180deg);
+  transition: transform 0.75s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Paper card — fixed, starts at same Y as envelope center ─────────────── */
-/* z-index 6 = BEHIND the envelope (z-10) initially.
-   As paper rises, its top portion emerges ABOVE the envelope → visible.
-   Bottom portion stays behind envelope until envelope fades.               */
+/* Inside of flap — visible when flap folds back (lighter maroon inner color) */
+/* We add this as a CSS pseudo element on oc-env-flap that shows the "back" */
+.oc-env-flap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #6b0f1c 0%, #4a0810 100%);
+  clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+  backface-visibility: visible;
+  transform: rotateY(180deg);
+  /* This is the back face of the flap, visible when fully flipped */
+}
+
+/* Envelope body fades after paper fully rises */
+.oc-screen.oc-paper-hold .oc-env-body,
+.oc-screen.oc-revealing .oc-env-body {
+  opacity: 0;
+  transform: scale(0.96) translateY(15px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.oc-screen.oc-paper-rising .oc-env-body {
+  transition: opacity 0.6s ease 0.8s, transform 0.6s ease 0.8s;
+}
+
+/* ── Paper card — fixed, starts at envelope level, rises above ───────────── */
+/* z-index 6: BEHIND .oc-env-wrap (z-10) initially.
+   As paper rises, the part above envelope top becomes visible.
+   Creates the "coming out of pocket" illusion.                             */
 .oc-paper {
   position: fixed;
   top: 62%;
   left: 50%;
-  width: min(78vw, 430px);
-  height: min(36vh, 270px);
-  z-index: 6;             /* Behind envelope z-10 */
+  width: min(78vw, 420px);
+  height: min(36vh, 260px);
+  z-index: 6;
   background: linear-gradient(165deg, #fdf8ee 0%, #f6ead5 55%, #faf2de 100%);
   border: 1.5px solid #c8a44e;
   border-radius: 12px;
   box-shadow:
-    0 -4px 20px rgba(0,0,0,0.35),
+    0 -4px 20px rgba(0,0,0,0.3),
     0 10px 35px rgba(0,0,0,0.45),
     inset 0 0 30px rgba(212,175,55,0.08);
   display: flex;
@@ -1686,23 +1707,21 @@ button.couple-arch-button:active {
   justify-content: center;
   text-align: center;
   padding: 20px 22px;
-  /* Start: centered at envelope position, fully hidden behind */
+  /* Start: behind envelope, same center point */
   transform: translate(-50%, -50%);
   opacity: 0;
-  /* No transition in sealed state */
   transition: none;
   pointer-events: none;
 }
 
-/* Paper starts peeking from envelope top */
+/* Paper peeks from pocket as flap opens */
 .oc-screen.oc-opening .oc-paper {
-  transform: translate(-50%, -80%);
-  opacity: 0;
-  transition: transform 0.65s ease, opacity 0.3s ease;
+  transform: translate(-50%, -65%);
+  opacity: 0.15;
+  transition: transform 0.75s ease, opacity 0.4s ease;
 }
 
-/* Paper rises fully above envelope — 22vh above its center point.
-   This keeps paper comfortably within viewport on all screen sizes.         */
+/* Paper rises fully above envelope */
 .oc-screen.oc-paper-rising .oc-paper {
   transform: translate(-50%, calc(-50% - 24vh));
   opacity: 1;
@@ -1711,21 +1730,19 @@ button.couple-arch-button:active {
     opacity 0.5s ease 0.05s;
 }
 
-/* Hold position */
 .oc-screen.oc-paper-hold .oc-paper {
   transform: translate(-50%, calc(-50% - 24vh));
   opacity: 1;
   transition: none;
 }
 
-/* Fade out on reveal */
 .oc-screen.oc-revealing .oc-paper {
   transform: translate(-50%, calc(-50% - 24vh));
   opacity: 0;
   transition: opacity 0.65s ease;
 }
 
-/* ── Paper text content ──────────────────────────────────────────────────── */
+/* ── Paper text ──────────────────────────────────────────────────────────── */
 .oc-paper-inner {
   display: flex;
   flex-direction: column;
@@ -1752,7 +1769,7 @@ button.couple-arch-button:active {
 
 .oc-paper-names {
   font-family: var(--font-display);
-  font-size: clamp(1.8rem, 5vw, 2.5rem);
+  font-size: clamp(1.8rem, 5vw, 2.4rem);
   color: #5a0a1a;
   letter-spacing: 0.03em;
   font-weight: 600;
@@ -1796,12 +1813,12 @@ button.couple-arch-button:active {
 
 .oc-paper-script {
   font-family: var(--font-script);
-  font-size: clamp(1rem, 3vw, 1.25rem);
+  font-size: clamp(1rem, 3vw, 1.22rem);
   color: #8b6914;
   margin-top: 3px;
 }
 
-/* ── Tap cue — fixed at bottom of screen ────────────────────────────────── */
+/* ── Tap cue ─────────────────────────────────────────────────────────────── */
 .oc-cue {
   position: fixed;
   bottom: 6vh;
@@ -1846,17 +1863,15 @@ button.couple-arch-button:active {
   50%       { opacity: 1;   transform: translateY(-4px); }
 }
 
-/* ── Mobile adjustments ──────────────────────────────────────────────────── */
+/* ── Mobile ──────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .oc-env-wrap { width: min(90vw, 340px); top: 65%; }
-  .oc-paper { top: 65%; width: min(84vw, 320px); }
+  .oc-paper { top: 65%; width: min(84vw, 300px); }
   .oc-screen.oc-paper-rising .oc-paper,
   .oc-screen.oc-paper-hold .oc-paper,
   .oc-screen.oc-revealing .oc-paper {
     transform: translate(-50%, calc(-50% - 20vh));
   }
-  .oc-cue-title { font-size: 0.74rem; letter-spacing: 0.16em; }
-  .oc-cue-sub { font-size: 0.92rem; }
 }
 
 

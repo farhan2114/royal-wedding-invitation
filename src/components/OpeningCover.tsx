@@ -23,15 +23,13 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
   useEffect(() => {
     let t1: number, t2: number, t3: number, t4: number;
     if (stage === 'opening') {
-      // Flap tilts for 650ms, then paper starts rising
-      t1 = window.setTimeout(() => setStage('paper-rising'), 650);
+      // Flap folds for 750ms, then paper starts rising
+      t1 = window.setTimeout(() => setStage('paper-rising'), 750);
     }
     if (stage === 'paper-rising') {
-      // Paper rises for 1700ms
       t2 = window.setTimeout(() => setStage('paper-hold'), 1700);
     }
     if (stage === 'paper-hold') {
-      // Hold paper visible for 1s then reveal site
       t3 = window.setTimeout(() => {
         setStage('revealing');
         onOpen();
@@ -51,7 +49,7 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
       onClick={handleTap}
       aria-label="Tap to open wedding invitation"
     >
-      {/* PAPER — fixed, starts hidden behind envelope, rises above it */}
+      {/* PAPER — rises from inside envelope (z-index below envelope initially) */}
       <div className="oc-paper">
         <div className="oc-paper-inner">
           <span className="oc-paper-crown">&#9812;</span>
@@ -66,19 +64,31 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
         </div>
       </div>
 
-      {/* ENVELOPE — fixed, sits at 60% down screen, on top of paper initially */}
+      {/* ENVELOPE — split into BODY (stays) and FLAP (folds back) */}
       <div className="oc-env-wrap">
+
+        {/* Envelope BODY — same image, clipped to lower 52% (below the flap seam) */}
+        {/* This stays in place as the "open pocket" */}
         <img
           src="/images/red-envelope.png"
-          className="oc-env-img"
+          className="oc-env-body"
+          alt=""
+          draggable={false}
+          aria-hidden="true"
+        />
+
+        {/* Envelope FLAP — same image, clipped to upper triangle (the actual flap) */}
+        {/* This folds backward on tap, revealing the open pocket */}
+        <img
+          src="/images/red-envelope.png"
+          className="oc-env-flap"
           alt="Royal wedding envelope"
           draggable={false}
         />
-        {/* CSS overlay flap — tilts open on tap */}
-        <div className="oc-env-flap" />
+
       </div>
 
-      {/* Tap cue — fixed at bottom of screen */}
+      {/* Tap cue */}
       <div className="oc-cue">
         <p className="oc-cue-title">&#10022; TAP TO OPEN &#10022;</p>
         <p className="oc-cue-sub">Aarav &amp; Meera cordially invite you</p>
