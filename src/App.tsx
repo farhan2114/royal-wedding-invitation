@@ -39,9 +39,8 @@ export function App() {
   const handleOpenInvitation = () => {
     setIsCoverOpen(true);
     startMusic();
-    window.setTimeout(() => {
-      document.getElementById('welcome')?.focus();
-    }, 1200);
+    // Always scroll to top when site reveals
+    window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   return (
