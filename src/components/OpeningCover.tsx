@@ -24,15 +24,15 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
     let t1: number, t2: number, t3: number, t4: number;
 
     if (stage === 'seal-breaking') {
-      // brief crack pause, then paper starts coming out
-      t1 = window.setTimeout(() => setStage('paper-rising'), 500);
+      // Brief tap-shake pause, then paper starts emerging
+      t1 = window.setTimeout(() => setStage('paper-rising'), 480);
     }
     if (stage === 'paper-rising') {
-      // paper slides up for ~1.9s
-      t2 = window.setTimeout(() => setStage('paper-full'), 1900);
+      // Paper slides up for ~1.6s, then hold
+      t2 = window.setTimeout(() => setStage('paper-full'), 1650);
     }
     if (stage === 'paper-full') {
-      // hold full card for 0.9s then reveal site
+      // Hold card in view for 0.9s then reveal site
       t3 = window.setTimeout(() => {
         setStage('revealing');
         onOpen();
@@ -56,7 +56,7 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
       <div className="oc-envelope-wrap">
         <div className="oc-envelope-scene">
 
-          {/* Paper card - sits behind envelope, slides UP when tapped */}
+          {/* Paper card — starts hidden below, rises UP through the envelope opening */}
           <div className="oc-paper">
             <div className="oc-paper-inner">
               <span className="oc-paper-crown">&#9812;</span>
@@ -71,19 +71,20 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
             </div>
           </div>
 
-          {/* Envelope image on top — mix-blend-mode:multiply removes white bg */}
+          {/* Red envelope image — renders ON TOP of paper (z-10 > z-5) */}
+          {/* When paper-full: paper z-index jumps to z-15 (via CSS class) */}
           <img
             src="/images/red-envelope.png"
             className="oc-envelope-img"
-            alt="Royal red envelope"
+            alt="Royal red envelope with gold wax seal"
             draggable={false}
           />
 
-          {/* Invisible tap zone precisely over the gold wax seal */}
+          {/* Invisible click zone over the physical gold wax seal in the image */}
           <button
             className="oc-seal-btn"
             onClick={(e) => { e.stopPropagation(); handleTap(); }}
-            aria-label="Tap seal to open invitation"
+            aria-label="Tap the seal to open your invitation"
             type="button"
           >
             <span className="oc-seal-ring" />
@@ -92,6 +93,7 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
         </div>
       </div>
 
+      {/* Tap cue text — directly below envelope, gap handled by flex gap on .oc-screen */}
       <div className="oc-cue">
         <p className="oc-cue-title">&#10022; TAP THE SEAL TO OPEN &#10022;</p>
         <p className="oc-cue-sub">Aarav &amp; Meera cordially invite you</p>
