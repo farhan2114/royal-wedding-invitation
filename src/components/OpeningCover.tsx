@@ -17,7 +17,7 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
       // Tap during animation skips directly to the website
       setStage('revealing');
       onOpen();
-      window.setTimeout(() => setStage('done'), 800);
+      window.setTimeout(() => setStage('done'), 450);
     }
   };
 
@@ -25,26 +25,21 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
     let t1: number, t2: number, t3: number, t4: number;
 
     if (stage === 'opening') {
-      // 1. Flap unfolds upwards over 750ms, then card starts rising
-      t1 = window.setTimeout(() => setStage('rising'), 750);
+      // 1. Flap unfolds upwards swiftly over 500ms
+      t1 = window.setTimeout(() => setStage('rising'), 500);
     }
 
     if (stage === 'rising') {
-      // 2. Card glides up smoothly over 1300ms, then holds in place
-      t2 = window.setTimeout(() => setStage('held'), 1350);
-    }
-
-    if (stage === 'held') {
-      // 3. Hold card in full view for 1600ms so guests can read names & date
-      t3 = window.setTimeout(() => {
+      // 2. Card glides out smoothly over 800ms, then reveals website immediately
+      t2 = window.setTimeout(() => {
         setStage('revealing');
         onOpen();
-      }, 1600);
+      }, 850);
     }
 
     if (stage === 'revealing') {
-      // 4. Smooth fade out revealing the website
-      t4 = window.setTimeout(() => setStage('done'), 800);
+      // 3. Quick smooth transition to main site
+      t4 = window.setTimeout(() => setStage('done'), 500);
     }
 
     return () => {
