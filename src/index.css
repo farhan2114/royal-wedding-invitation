@@ -1629,7 +1629,6 @@ button.couple-arch-button:active {
   width: 100%;
   padding-bottom: 66.57%;  /* intrinsic height = 66.57% of width */
   height: 0;
-  filter: drop-shadow(0 24px 60px rgba(0,0,0,0.88));
   transform-style: preserve-3d;
 }
 
@@ -1657,18 +1656,19 @@ button.couple-arch-button:active {
   left: 0;
   right: 0;
   height: 52%;            /* Flap occupies top 52% of envelope */
-  transform-origin: 50% 100%;  /* Hinge at BOTTOM of the flap = the seam line */
+  transform-origin: 50% 0%;   /* Hinge at TOP edge of the envelope */
   transform: rotateX(0deg);
   transform-style: preserve-3d;
   transition: transform 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 5;
 }
 
-/* Flap rotates BACKWARD on tap — like opening a real envelope */
+/* Flap rotates UPWARD and backward on tap — folds up over the envelope top */
 .oc-screen.oc-opening .oc-env-flap-hinge,
 .oc-screen.oc-paper-rising .oc-env-flap-hinge,
 .oc-screen.oc-paper-hold .oc-env-flap-hinge,
 .oc-screen.oc-revealing .oc-env-flap-hinge {
-  transform: rotateX(-175deg);
+  transform: rotateX(-180deg);
 }
 
 /* ── Flap FRONT face (the envelope image triangle — shows when sealed) ────── */
@@ -2447,69 +2447,94 @@ button.couple-arch-button:active {
 }
 
 .modal-inner-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-  min-height: 420px;
-  height: 70vh;
-  max-height: 520px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 12px;
 }
 
 .modal-img-col {
-  border-radius: 16px 0 0 16px;
+  flex: 0 0 220px;
+  width: 220px;
+  height: 220px;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
   overflow: hidden;
-  height: 100%;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+  border: 2px solid #c9a65a;
+  background: #f0e2cc;
 }
 .modal-img-col img {
   width: 100%;
   height: 100%;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
-  object-position: center top;
+  object-position: center 15%;
   display: block;
 }
 
 .modal-copy-col {
-  padding: 36px 32px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 12px;
+  gap: 10px;
+  padding-right: 12px;
 }
 
 .modal-copy-col h3 {
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 2.1rem;
   color: #5a0a1a;
   font-weight: 600;
-  margin: 4px 0;
+  margin: 2px 0 4px;
   line-height: 1.1;
 }
 
 .modal-bio-text {
   font-family: var(--font-body);
-  font-size: 1rem;
+  font-size: 1.02rem;
   color: #5a4030;
-  line-height: 1.75;
+  line-height: 1.7;
   margin: 0;
 }
 
-@media (max-width: 560px) {
+/* Mobile responsive — clean centered square portrait */
+@media (max-width: 600px) {
+  .profile-modal-card {
+    padding: 24px 18px 20px;
+    width: min(92vw, 420px);
+  }
   .modal-inner-grid {
-    grid-template-columns: 1fr;
-    height: auto;
-    max-height: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    padding: 0;
   }
   .modal-img-col {
-    border-radius: 16px 16px 0 0;
-    height: 280px;
+    flex: 0 0 180px;
+    width: 180px;
+    height: 180px;
+    aspect-ratio: 1 / 1;
+    margin: 8px auto 0;
   }
   .modal-img-col img {
-    height: 280px;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1 / 1;
+    object-position: center 15%;
   }
   .modal-copy-col {
-    padding: 24px 22px;
+    align-items: center;
+    padding-right: 0;
+    text-align: center;
   }
   .modal-copy-col h3 {
-    font-size: 1.6rem;
+    font-size: 1.8rem;
+  }
+  .modal-bio-text {
+    font-size: 0.95rem;
+    line-height: 1.6;
   }
 }
