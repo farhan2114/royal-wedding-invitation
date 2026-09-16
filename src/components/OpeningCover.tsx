@@ -22,31 +22,28 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
   };
 
   useEffect(() => {
-    let t1: number, t2: number, t3: number, t4: number;
+    const timers: number[] = [];
 
     if (stage === 'opening') {
       // 1. Flap unfolds upwards swiftly in 380ms
-      t1 = window.setTimeout(() => setStage('rising'), 380);
+      timers.push(window.setTimeout(() => setStage('rising'), 380));
     }
 
     if (stage === 'rising') {
       // 2. Card glides out smoothly in 620ms, then reveals website immediately
-      t2 = window.setTimeout(() => {
+      timers.push(window.setTimeout(() => {
         setStage('revealing');
         onOpen();
-      }, 650);
+      }, 650));
     }
 
     if (stage === 'revealing') {
       // 3. Immediate smooth transition to main site
-      t4 = window.setTimeout(() => setStage('done'), 400);
+      timers.push(window.setTimeout(() => setStage('done'), 400));
     }
 
     return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-      clearTimeout(t4);
+      timers.forEach((t) => clearTimeout(t));
     };
   }, [stage, onOpen]);
 
