@@ -80,7 +80,7 @@ export const OpeningCover: React.FC<OpeningCoverProps> = ({ isOpen, onOpen }) =>
                   <stop offset="100%" stopColor="#44070f" />
                 </linearGradient>
               </defs>
-              <path d="M 0 0 L 400 0 L 200 152 Z" fill="url(#flapFrontGrad)" />
+              <path d="M 0 10 A 10 10 0 0 1 10 0 L 390 0 A 10 10 0 0 1 400 10 L 200 152 Z" fill="url(#flapFrontGrad)" />
             </svg>
 
             {/* Gold Wax Heart Seal at the tip of the flap */}
