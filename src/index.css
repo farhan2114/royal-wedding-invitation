@@ -1572,206 +1572,176 @@ button.couple-arch-button:active {
 
 
 /* ==========================================================================
-   14. OPENING COVER — Envelope flap opens (div+bg-image, NOT img+clip-path)
+   14. OPENING COVER — Pure 3D Layered Envelope & Smooth Invitation Reveal
+   (Matching Reference Animation: Flap opens upwards, card slides out cleanly)
    ========================================================================== */
 
-/* KEY TECHNIQUE:
-   The envelope image (700×466px, ratio 0.6657) is rendered as CSS background-image
-   on two <div> elements with clip-path. The rotating flap hinge is a plain <div>
-   with NO clip-path — so rotateX 3D transform works perfectly.
-   The children of the hinge carry the clip-path and backface settings.        */
-
-/* ── Screen ──────────────────────────────────────────────────────────────── */
+/* ── Fullscreen Overlay ─────────────────────────────────────────────────── */
 .oc-screen {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: radial-gradient(ellipse at 50% 55%, #1e0509 0%, #080102 100%);
-  transition: opacity 0.9s ease;
+  background: radial-gradient(ellipse at 50% 50%, #1e0509 0%, #080102 100%);
   user-select: none;
   cursor: pointer;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.8s ease;
 }
+
 .oc-screen.oc-revealing {
   opacity: 0;
   pointer-events: none;
 }
 
-/* ── Envelope wrapper — fixed, lower portion of screen ───────────────────── */
-.oc-env-wrap {
-  position: fixed;
-  top: 62%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(84vw, 480px);
-  z-index: 10;
-  /* Perspective is on the wrapper so children can do 3D transforms */
-  perspective: 900px;
-  perspective-origin: 50% 50%;
-}
-
-/* Envelope body fades as paper rises */
-.oc-screen.oc-paper-rising .oc-env-wrap {
-  opacity: 0;
-  transform: translate(-50%, -40%) scale(0.97);
-  transition: opacity 0.6s ease 0.6s, transform 0.6s ease 0.6s;
-}
-.oc-screen.oc-paper-hold .oc-env-wrap,
-.oc-screen.oc-revealing .oc-env-wrap {
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* ── Envelope container — intrinsic aspect ratio box ────────────────────── */
-/* The envelope image is 700×466 = aspect ratio 0.6657 (height/width)        */
-.oc-env-container {
+/* ── Scene & Envelope Wrapper ───────────────────────────────────────────── */
+.oc-scene {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  padding-bottom: 66.57%;  /* intrinsic height = 66.57% of width */
-  height: 0;
-  transform-style: preserve-3d;
+  height: 100vh;
 }
 
-/* ── Envelope BODY ────────────────────────────────────────────────────────── */
-/* Full image, but clipped to show everything EXCEPT the top flap triangle.
-   The clip removes the inverted-V shaped top flap, leaving the body:
-   - left side triangle, right side triangle, bottom area, and the seal area.  */
-.oc-env-body {
+.oc-envelope {
+  position: relative;
+  width: min(86vw, 420px);
+  aspect-ratio: 400 / 270;
+  perspective: 1100px;
+  filter: drop-shadow(0 25px 60px rgba(0, 0, 0, 0.88));
+  transition: transform 0.8s ease;
+}
+
+/* When card is held, center the view slightly */
+.oc-screen.oc-rising .oc-envelope,
+.oc-screen.oc-held .oc-envelope {
+  transform: translateY(40px);
+}
+
+/* ── Layer 1: Back panel inside the envelope ────────────────────────────── */
+.oc-env-back {
   position: absolute;
   inset: 0;
-  background: url('/images/red-envelope.png') no-repeat 0 0 / 100% auto;
-  /* Clip-path removes the top flap triangle (0,0)→(100%,0)→(50%,52%)
-     leaving the rest: the two side seams and the body below the seam         */
-  clip-path: polygon(0% 0%, 50% 52%, 100% 0%, 100% 100%, 0% 100%);
-  border-radius: 8px;
+  background: linear-gradient(150deg, #3d050c 0%, #220206 100%);
+  border-radius: 10px;
+  z-index: 1;
 }
 
-/* ── Envelope FLAP HINGE ─────────────────────────────────────────────────── */
-/* This <div> does the 3D rotation. It has NO clip-path — only its children do.
-   Height = 52% of container (the flap area of the image).
-   Transform-origin at BOTTOM = the envelope seam line (hinge point).         */
-.oc-env-flap-hinge {
+/* ── Layer 2: The Flap ──────────────────────────────────────────────────── */
+.oc-env-flap {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 52%;            /* Flap occupies top 52% of envelope */
-  transform-origin: 50% 0%;   /* Hinge at TOP edge of the envelope */
-  transform: rotateX(0deg);
+  height: 57%;
+  transform-origin: top center;
   transform-style: preserve-3d;
-  transition: transform 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s 0.35s;
   z-index: 5;
 }
 
-/* Flap rotates UPWARD and backward on tap — folds up over the envelope top */
-.oc-screen.oc-opening .oc-env-flap-hinge,
-.oc-screen.oc-paper-rising .oc-env-flap-hinge,
-.oc-screen.oc-paper-hold .oc-env-flap-hinge,
-.oc-screen.oc-revealing .oc-env-flap-hinge {
-  transform: rotateX(-180deg);
+.oc-flap-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 5px 12px rgba(0, 0, 0, 0.45));
 }
 
-/* ── Flap FRONT face (the envelope image triangle — shows when sealed) ────── */
-/* background-size: 100% auto → image fills the full width of the hinge.
-   Since hinge is shorter than full container, we see only the TOP portion.
-   clip-path: triangle pointing down = the actual envelope flap shape.         */
-.oc-env-flap-front {
+/* Gold wax heart seal on the flap tip */
+.oc-wax-seal {
   position: absolute;
-  inset: 0;
-  background: url('/images/red-envelope.png') no-repeat 0 0 / 100% auto;
-  /* clip to the flap triangle: top-left → top-right → center-bottom */
-  clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
-  backface-visibility: hidden;
-  border-radius: 8px 8px 0 0;
-}
-
-/* ── Flap BACK face (visible when flap has rotated fully open) ────────────── */
-/* This is the "inside" of the envelope flap — a darker maroon.
-   Starts on the back (rotateX 180deg), becomes visible when hinge rotates.   */
-.oc-env-flap-back {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, #3d0508 0%, #5c0810 100%);
-  clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
-  backface-visibility: hidden;
-  transform: rotateX(180deg);  /* Starts facing backward */
-  border-radius: 8px 8px 0 0;
-}
-
-/* ── Paper card — fixed position ─────────────────────────────────────────── */
-/* z-index 6 = behind oc-env-wrap (z-10).
-   Starts at same Y as envelope center. As it rises, top emerges above
-   the envelope creating the "coming out of pocket" look.                     */
-.oc-paper {
-  position: fixed;
-  top: 62%;
+  top: calc(100% - 32px);
   left: 50%;
-  width: min(78vw, 420px);
-  height: min(36vh, 260px);
+  transform: translateX(-50%);
+  width: 66px;
+  height: 66px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.65));
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  pointer-events: none;
   z-index: 6;
-  background: linear-gradient(165deg, #fdf8ee 0%, #f6ead5 55%, #faf2de 100%);
-  border: 1.5px solid #c8a44e;
-  border-radius: 12px;
-  box-shadow:
-    0 -4px 20px rgba(0,0,0,0.3),
-    0 10px 35px rgba(0,0,0,0.45),
-    inset 0 0 30px rgba(212,175,55,0.08);
+}
+
+.oc-wax-seal img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Flap unfolds UPWARDS & BACKWARDS */
+.oc-screen.oc-opening .oc-env-flap,
+.oc-screen.oc-rising .oc-env-flap,
+.oc-screen.oc-held .oc-env-flap,
+.oc-screen.oc-revealing .oc-env-flap {
+  transform: rotateX(-180deg);
+  z-index: 0; /* Drops behind back panel once folded back */
+}
+
+/* Wax seal dissolves as flap opens */
+.oc-screen.oc-opening .oc-wax-seal,
+.oc-screen.oc-rising .oc-wax-seal,
+.oc-screen.oc-held .oc-wax-seal,
+.oc-screen.oc-revealing .oc-wax-seal {
+  opacity: 0;
+  transform: translateX(-50%) scale(0.6);
+}
+
+/* ── Layer 3: The Invitation Card ───────────────────────────────────────── */
+.oc-card {
+  position: absolute;
+  top: 5%;
+  left: 5%;
+  right: 5%;
+  height: 94%;
+  background: linear-gradient(165deg, #fdf9f0 0%, #f7eedb 55%, #fbf4e2 100%);
+  border: 1.5px solid #c9a65a;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 20px 22px;
-  /* Sealed: paper hidden behind envelope */
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  transition: none;
+  padding: 16px 20px;
+  transform: translateY(0);
+  transition:
+    transform 1.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 1.3s ease;
   pointer-events: none;
 }
 
-/* Paper peeks from open envelope as flap is rotating */
-.oc-screen.oc-opening .oc-paper {
-  transform: translate(-50%, -70%);
-  opacity: 0.9;
-  transition: transform 0.75s ease 0.2s, opacity 0.4s ease 0.2s;
+/* Card emerges smoothly UPWARDS out of the pocket */
+.oc-screen.oc-rising .oc-card,
+.oc-screen.oc-held .oc-card,
+.oc-screen.oc-revealing .oc-card {
+  transform: translateY(-64%) scale(1.04);
+  box-shadow:
+    0 24px 55px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(212, 175, 55, 0.4),
+    inset 0 0 25px rgba(212, 175, 55, 0.08);
 }
 
-/* Paper rises fully clear of envelope */
-.oc-screen.oc-paper-rising .oc-paper {
-  transform: translate(-50%, calc(-50% - 24vh));
-  opacity: 1;
-  transition:
-    transform 1.6s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.35s ease;
-}
-
-.oc-screen.oc-paper-hold .oc-paper {
-  transform: translate(-50%, calc(-50% - 24vh));
-  opacity: 1;
-  transition: none;
-}
-
-.oc-screen.oc-revealing .oc-paper {
-  transform: translate(-50%, calc(-50% - 24vh));
-  opacity: 0;
-  transition: opacity 0.65s ease;
-}
-
-/* ── Paper text ──────────────────────────────────────────────────────────── */
-.oc-paper-inner {
+/* ── Card Typography & Details ──────────────────────────────────────────── */
+.oc-card-inner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   width: 100%;
 }
 
-.oc-paper-crown {
+.oc-card-crown {
   font-size: 26px;
   color: #b8860b;
   line-height: 1;
 }
 
-.oc-paper-eyebrow {
+.oc-card-eyebrow {
   font-family: var(--font-heading);
   font-size: 0.72rem;
   letter-spacing: 0.25em;
@@ -1781,18 +1751,18 @@ button.couple-arch-button:active {
   margin: 0;
 }
 
-.oc-paper-names {
+.oc-card-names {
   font-family: var(--font-display);
-  font-size: clamp(1.8rem, 5vw, 2.4rem);
+  font-size: clamp(1.7rem, 4.8vw, 2.35rem);
   color: #5a0a1a;
   letter-spacing: 0.03em;
   font-weight: 600;
   line-height: 1.1;
-  margin: 3px 0 2px;
+  margin: 2px 0;
 }
 
-.oc-paper-rule {
-  width: 80px;
+.oc-card-rule {
+  width: 75px;
   height: 1px;
   background: linear-gradient(90deg, transparent, #c9a65a, transparent);
   display: flex;
@@ -1801,14 +1771,14 @@ button.couple-arch-button:active {
   margin: 4px 0;
 }
 
-.oc-paper-diamond {
+.oc-card-diamond {
   font-size: 7px;
   color: #c9a65a;
-  background: #fdf8ee;
+  background: #fdf9f0;
   padding: 0 3px;
 }
 
-.oc-paper-date {
+.oc-card-date {
   font-family: var(--font-display);
   font-size: clamp(0.85rem, 2.5vw, 1rem);
   color: #7a5c28;
@@ -1816,7 +1786,7 @@ button.couple-arch-button:active {
   margin: 0;
 }
 
-.oc-paper-place {
+.oc-card-place {
   font-family: var(--font-heading);
   font-size: clamp(0.68rem, 2vw, 0.76rem);
   letter-spacing: 0.2em;
@@ -1825,28 +1795,40 @@ button.couple-arch-button:active {
   margin: 0;
 }
 
-.oc-paper-script {
+.oc-card-script {
   font-family: var(--font-script);
-  font-size: clamp(1rem, 3vw, 1.22rem);
+  font-size: clamp(1rem, 3vw, 1.25rem);
   color: #8b6914;
   margin-top: 3px;
 }
 
-/* ── Tap cue ─────────────────────────────────────────────────────────────── */
+/* ── Layer 4: Front Pocket ──────────────────────────────────────────────── */
+.oc-env-pocket {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.oc-pocket-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* ── Tap Cue ────────────────────────────────────────────────────────────── */
 .oc-cue {
-  position: fixed;
-  bottom: 6vh;
-  left: 50%;
-  transform: translateX(-50%);
+  margin-top: 32px;
   text-align: center;
   transition: opacity 0.4s ease;
   white-space: nowrap;
-  z-index: 20;
 }
 
 .oc-screen.oc-opening .oc-cue,
-.oc-screen.oc-paper-rising .oc-cue,
-.oc-screen.oc-paper-hold .oc-cue,
+.oc-screen.oc-rising .oc-cue,
+.oc-screen.oc-held .oc-cue,
 .oc-screen.oc-revealing .oc-cue {
   opacity: 0;
   pointer-events: none;
@@ -1859,32 +1841,47 @@ button.couple-arch-button:active {
   text-transform: uppercase;
   color: #e5be7a;
   font-weight: 700;
-  margin: 0 0 5px;
+  margin: 0 0 4px;
   animation: oc-cue-float 2.2s infinite ease-in-out;
 }
 
 .oc-cue-sub {
   font-family: var(--font-display);
-  font-size: 1.08rem;
-  color: rgba(245,235,210,0.75);
+  font-size: 1.05rem;
+  color: rgba(245, 235, 210, 0.75);
   font-style: italic;
   letter-spacing: 0.05em;
   margin: 0;
 }
 
 @keyframes oc-cue-float {
-  0%, 100% { opacity: 0.7; transform: translateY(0); }
-  50%       { opacity: 1;   transform: translateY(-4px); }
+  0%, 100% { opacity: 0.75; transform: translateY(0); }
+  50%       { opacity: 1;    transform: translateY(-4px); }
 }
 
-/* ── Mobile ──────────────────────────────────────────────────────────────── */
-@media (max-width: 640px) {
-  .oc-env-wrap { width: min(90vw, 340px); top: 65%; }
-  .oc-paper    { top: 65%; width: min(84vw, 300px); }
-  .oc-screen.oc-paper-rising .oc-paper,
-  .oc-screen.oc-paper-hold .oc-paper,
-  .oc-screen.oc-revealing .oc-paper {
-    transform: translate(-50%, calc(-50% - 20vh));
+/* ── Mobile Responsive ──────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .oc-envelope {
+    width: min(88vw, 340px);
+  }
+  .oc-screen.oc-rising .oc-envelope,
+  .oc-screen.oc-held .oc-envelope {
+    transform: translateY(35px);
+  }
+  .oc-screen.oc-rising .oc-card,
+  .oc-screen.oc-held .oc-card,
+  .oc-screen.oc-revealing .oc-card {
+    transform: translateY(-60%) scale(1.03);
+  }
+  .oc-card-names {
+    font-size: 1.7rem;
+  }
+  .oc-cue-title {
+    font-size: 0.78rem;
+    letter-spacing: 0.16em;
+  }
+  .oc-cue-sub {
+    font-size: 0.92rem;
   }
 }
 
